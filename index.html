@@ -183,7 +183,7 @@
             Comment récupérer les informations avec le bouton <span class="icon-info-badge">i</span> ?
         </summary>
         <ol id="instructions">
-            </ol>
+        </ol>
     </details>
 
     <div class="btn-group">
@@ -253,6 +253,7 @@ function changerDepartement() {
     const infoGroup = document.getElementById('infoGroup');
     const pageGroup = document.getElementById('pageGroup');
     const instructions = document.getElementById('instructions');
+    const infoTitle = document.getElementById('infoTitle');
 
     document.getElementById('pageInput').value = 1;
 
@@ -260,6 +261,8 @@ function changerDepartement() {
         standardGroup.style.display = "none";
         parisGroup.style.display = "block";
         pageGroup.style.display = "block";
+
+        infoTitle.innerHTML = "Comment utiliser le générateur pour Paris ?";
 
         instructions.innerHTML = `
             <li>Sélectionnez Paris (75).</li>
@@ -272,6 +275,8 @@ function changerDepartement() {
         infoGroup.style.display = "block";
         pageGroup.style.display = "block";
         
+        infoTitle.innerHTML = `Comment récupérer les informations avec le bouton <span class="icon-info-badge">i</span> ?`;
+
         document.getElementById('baseUrl').value = config.baseUrl;
         document.getElementById('coteInput').placeholder = config.placeholderCote;
         document.getElementById('infoInput').placeholder = config.placeholderInfo;
