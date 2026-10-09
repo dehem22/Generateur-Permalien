@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur de Permalien - Archives Départementales</title>
+    <title>Générateur de Permalien - Archives Départementales & Municipales</title>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -29,7 +29,7 @@
             font-weight: 600;
             font-size: 0.9em;
         }
-        input[type="text"], input[type="number"], select {
+        input[type="text"], input[type="number"], select, textarea {
             width: 100%;
             padding: 10px;
             margin-top: 5px;
@@ -37,6 +37,11 @@
             border-radius: 4px;
             box-sizing: border-box;
             background-color: #fff;
+            font-family: inherit;
+        }
+        textarea {
+            resize: vertical;
+            height: 70px;
         }
         .btn-group {
             display: flex;
@@ -142,19 +147,22 @@
 <body>
 
 <div class="card">
-    <h2>Générateur de Permalien - Archives Départementales</h2>
+    <h2>Générateur de Permalien - Archives</h2>
     
-    <label for="deptSelect">Choix du département :</label>
+    <label for="deptSelect">Choix du dépôt d'archives :</label>
     <select id="deptSelect" onchange="reinitialiser(); changerDepartement();">
-        <option value="09">09 - Ariège</option>
-        <option value="11">11 - Aude</option>
-        <option value="38" selected>38 - Isère</option>
-        <option value="61">61 - Orne</option>
-        <option value="66">66 - Pyrénées-Orientales</option>
-        <option value="75">75 - Paris</option>
-        <option value="77">77 - Seine-et-Marne</option>
+        <option value="09">09 - Ariège (AD)</option>
+        <option value="11">11 - Aude (AD)</option>
+        <option value="38" selected>38 - Isère (AD)</option>
+        <option value="61">61 - Orne (AD)</option>
+        <option value="66">66 - Pyrénées-Orientales (AD)</option>
+        <option value="75">75 - Paris (AD)</option>
+        <option value="77">77 - Seine-et-Marne (AD)</option>
+        <option value="am_nantes">44 - Nantes (AM)</option>
+        <option value="am_saint_etienne">42 - Saint-Étienne (AM)</option>
     </select>
 
+    <!-- Groupe standard pour la plupart des AD -->
     <div id="standardGroup">
         <label for="baseUrl">Base de l'URL :</label>
         <input type="text" id="baseUrl" value="" oninput="genererPermalien()">
@@ -168,11 +176,19 @@
         </div>
     </div>
 
-    <div id="parisGroup" style="display: none;">
-        <label for="urlInput">URL longue issue de la recherche (Paris) :</label>
-        <input type="text" id="urlInput" placeholder="Collez l'URL complète ici..." oninput="genererPermalien()">
+    <!-- Groupe pour Paris & Saint-Étienne -->
+    <div id="urlGroup" style="display: none;">
+        <label id="urlInputLabel" for="urlInput">URL issue de la recherche :</label>
+        <textarea id="urlInput" placeholder="Collez l'URL complète ici..." oninput="genererPermalien()"></textarea>
     </div>
 
+    <!-- Groupe pour Nantes -->
+    <div id="nantesGroup" style="display: none;">
+        <label for="nantesUrlInput">URL de la visionneuse / permalien initial :</label>
+        <textarea id="nantesUrlInput" placeholder="Ex: https://archives-numerisees.nantes.fr/v2/am441/visualiseur/etatcivil.html?id=451004743" oninput="genererPermalien()"></textarea>
+    </div>
+
+    <!-- Numéro de la vue -->
     <div id="pageGroup">
         <label for="pageInput">N° de la vue / page désirée :</label>
         <input type="number" id="pageInput" placeholder="Ex: 1" min="1" value="1" oninput="genererPermalien()">
@@ -180,7 +196,7 @@
 
     <details open>
         <summary id="infoTitle">
-            Comment récupérer les informations avec le bouton <span class="icon-info-badge">i</span> ?
+            Comment récupérer les informations ?
         </summary>
         <ol id="instructions">
         </ol>
@@ -241,6 +257,13 @@ const deptsConfig = {
         mode: "fichier",
         placeholderCote: "Ex: 6e91/13",
         placeholderInfo: "Ex: frad077_6e0091_013_075.jpg"
+    },
+    "am_nantes": {
+        mode: "nantes"
+    },
+    "am_saint_etienne": {
+        baseUrl: "https://archives.saint-etienne.fr/recherches-et-consultation-1/recherche-documentaire/genealogie",
+        mode: "saint_etienne"
     }
 };
 
@@ -249,31 +272,51 @@ function changerDepartement() {
     const config = deptsConfig[dept];
     
     const standardGroup = document.getElementById('standardGroup');
-    const parisGroup = document.getElementById('parisGroup');
+    const urlGroup = document.getElementById('urlGroup');
+    const nantesGroup = document.getElementById('nantesGroup');
     const infoGroup = document.getElementById('infoGroup');
     const pageGroup = document.getElementById('pageGroup');
     const instructions = document.getElementById('instructions');
     const infoTitle = document.getElementById('infoTitle');
+    const urlInputLabel = document.getElementById('urlInputLabel');
 
     document.getElementById('pageInput').value = 1;
 
+    // Réinitialisation des affichages
+    standardGroup.style.display = "none";
+    urlGroup.style.display = "none";
+    nantesGroup.style.display = "none";
+    pageGroup.style.display = "block";
+
     if (config.mode === "paris") {
-        standardGroup.style.display = "none";
-        parisGroup.style.display = "block";
-        pageGroup.style.display = "block";
-
+        urlGroup.style.display = "block";
+        urlInputLabel.innerText = "URL longue issue de la recherche (Paris) :";
         infoTitle.innerHTML = "Comment utiliser le générateur pour Paris ?";
-
         instructions.innerHTML = `
             <li>Sélectionnez Paris (75).</li>
             <li>Collez l'URL longue issue de votre recherche.</li>
-            <li>Indiquez le numéro de vue / page désirée (par défaut : 1).</li>
+            <li>Indiquez le numéro de vue / page désirée.</li>
+        `;
+    } else if (config.mode === "saint_etienne") {
+        urlGroup.style.display = "block";
+        urlInputLabel.innerText = "URL longue de la visionneuse (Arkaïa / Saint-Étienne) :";
+        infoTitle.innerHTML = "Comment utiliser le générateur pour Saint-Étienne ?";
+        instructions.innerHTML = `
+            <li>Copiez l'URL longue depuis la barre d'adresse de la visionneuse.</li>
+            <li>Collez-la dans le champ dédié.</li>
+            <li>Ajustez le numéro de la vue si nécessaire (l'index sera automatiquement calculé).</li>
+        `;
+    } else if (config.mode === "nantes") {
+        nantesGroup.style.display = "block";
+        infoTitle.innerHTML = "Comment utiliser le générateur pour les AM de Nantes ?";
+        instructions.innerHTML = `
+            <li>Copiez l'URL de la visionneuse (ex: <code>.../etatcivil.html?id=451004743</code>).</li>
+            <li>Collez-la ci-dessus.</li>
+            <li>Indiquez le numéro de la vue / page souhaitée (ex: 54).</li>
         `;
     } else {
         standardGroup.style.display = "block";
-        parisGroup.style.display = "none";
         infoGroup.style.display = "block";
-        pageGroup.style.display = "block";
         
         infoTitle.innerHTML = `Comment récupérer les informations avec le bouton <span class="icon-info-badge">i</span> ?`;
 
@@ -300,7 +343,6 @@ function analyserInfoImage() {
         return;
     }
 
-    // Extrait le numéro de séquence à la fin du nom de fichier (ex: 0018 ou 038)
     const match = infoRaw.match(/_(\d{3,4})\.(jpg|jpeg)/i);
     if (match) {
         pageInput.value = parseInt(match[1], 10);
@@ -349,6 +391,70 @@ function genererPermalien() {
             urlFinale = `${config.baseUrl}#${baseVisionneuse}`;
         } else {
             urlFinale = `${config.baseUrl}#${baseVisionneuse}/${indexPage}`;
+        }
+
+    } else if (config.mode === "saint_etienne") {
+        const rawInput = document.getElementById('urlInput').value.trim();
+        let pageNum = parseInt(document.getElementById('pageInput').value, 10);
+
+        if (!rawInput) return;
+
+        let systemKey1 = "arko_default_619517ef1a5d5";
+        let arkoFiche = "";
+        let systemKey2 = "arko_default_61938e2788aec";
+        let idImage = "";
+
+        const matchFull = rawInput.match(/visionneuse-infos\/([^\/]+)\/(arko_fiche_[a-z0-9]+)\/([^\/]+)(?:\/image\/(\d+))?/i);
+
+        if (matchFull) {
+            systemKey1 = matchFull[1];
+            arkoFiche = matchFull[2];
+            systemKey2 = matchFull[3];
+            if (matchFull[4]) idImage = matchFull[4];
+        } else {
+            const matchesFiche = [...rawInput.matchAll(/arko_fiche_([a-z0-9]+)/gi)];
+            if (matchesFiche.length > 0) {
+                arkoFiche = "arko_fiche_" + matchesFiche[matchesFiche.length - 1][1];
+            }
+            const matchImg = rawInput.match(/\/image\/(\d+)/i);
+            if (matchImg) idImage = matchImg[1];
+        }
+
+        if (isNaN(pageNum) || pageNum < 1) {
+            pageNum = 1;
+            document.getElementById('pageInput').value = 1;
+        }
+
+        if (!arkoFiche) {
+            errorMsg.innerText = "Impossible de trouver la clé arko_fiche dans l'URL.";
+            return;
+        }
+
+        const indexVue = pageNum - 1;
+        urlFinale = idImage
+            ? `${config.baseUrl}#/_recherche-api/visionneuse-infos/${systemKey1}/${arkoFiche}/${systemKey2}/image/${idImage}/${indexVue}`
+            : `${config.baseUrl}#/_recherche-api/visionneuse-infos/${systemKey1}/${arkoFiche}/${systemKey2}/${indexVue}`;
+
+    } else if (config.mode === "nantes") {
+        const nantesUrl = document.getElementById('nantesUrlInput').value.trim();
+        let pageNum = parseInt(document.getElementById('pageInput').value, 10);
+
+        if (!nantesUrl) return;
+
+        if (isNaN(pageNum) || pageNum < 1) {
+            pageNum = 1;
+            document.getElementById('pageInput').value = 1;
+        }
+
+        try {
+            const urlObj = new URL(nantesUrl);
+            urlObj.searchParams.set('vue', pageNum);
+            urlFinale = urlObj.toString();
+        } catch (e) {
+            // Si l'URL saisie est partielle
+            let cleanUrl = nantesUrl.replace(/&vue=\d+/g, '').replace(/\?vue=\d+/g, '');
+            const separator = cleanUrl.includes('?') ? '&' : '?';
+            urlFinale = `${cleanUrl}${separator}vue=${pageNum}`;
         }
 
     } else {
@@ -407,6 +513,7 @@ function reinitialiser() {
     document.getElementById('coteInput').value = "";
     document.getElementById('infoInput').value = "";
     document.getElementById('urlInput').value = "";
+    document.getElementById('nantesUrlInput').value = "";
     document.getElementById('pageInput').value = 1;
     document.getElementById('errorMsg').innerText = "";
     document.getElementById('resultContainer').style.display = "none";
@@ -414,7 +521,7 @@ function reinitialiser() {
 
 window.onload = function() {
     const urlParams = new URLSearchParams(window.location.search);
-    const deptParam = urlParams.get('dept');
+    const deptParam = urlParams.get('dept') || urlParams.get('archive');
 
     if (deptParam && deptsConfig[deptParam]) {
         document.getElementById('deptSelect').value = deptParam;
