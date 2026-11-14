@@ -156,6 +156,7 @@
         <option value="38" selected>38 - Isère (AD)</option>
         <option value="61">61 - Orne (AD)</option>
         <option value="66">66 - Pyrénées-Orientales (AD)</option>
+        <option value="73">73 - Savoie (AD)</option>
         <option value="75">75 - Paris (AD)</option>
         <option value="77">77 - Seine-et-Marne (AD)</option>
         <option value="am_nantes">44 - Nantes (AM)</option>
@@ -186,6 +187,12 @@
     <div id="nantesGroup" style="display: none;">
         <label for="nantesUrlInput">URL de la visionneuse / permalien initial :</label>
         <textarea id="nantesUrlInput" placeholder="Ex: https://archives-numerisees.nantes.fr/v2/am441/visualiseur/etatcivil.html?id=451004743" oninput="genererPermalien()"></textarea>
+    </div>
+
+    <!-- Groupe pour la Savoie -->
+    <div id="savoieGroup" style="display: none;">
+        <label for="savoieUrlInput">URL de la visionneuse (barre d'adresse) :</label>
+        <textarea id="savoieUrlInput" placeholder="Ex: https://archives-numeriques.savoie.fr/v2/ark:/77293/6ae5acf21f8157119af4c4b33679182c" oninput="genererPermalien()"></textarea>
     </div>
 
     <!-- Numéro de la vue -->
@@ -258,6 +265,9 @@ const deptsConfig = {
         placeholderCote: "Ex: 6e91/13",
         placeholderInfo: "Ex: frad077_6e0091_013_075.jpg"
     },
+    "73": {
+        mode: "savoie"
+    },
     "am_nantes": {
         mode: "nantes"
     },
@@ -274,6 +284,7 @@ function changerDepartement() {
     const standardGroup = document.getElementById('standardGroup');
     const urlGroup = document.getElementById('urlGroup');
     const nantesGroup = document.getElementById('nantesGroup');
+    const savoieGroup = document.getElementById('savoieGroup');
     const infoGroup = document.getElementById('infoGroup');
     const pageGroup = document.getElementById('pageGroup');
     const instructions = document.getElementById('instructions');
@@ -286,6 +297,7 @@ function changerDepartement() {
     standardGroup.style.display = "none";
     urlGroup.style.display = "none";
     nantesGroup.style.display = "none";
+    savoieGroup.style.display = "none";
     pageGroup.style.display = "block";
 
     if (config.mode === "paris") {
@@ -305,6 +317,14 @@ function changerDepartement() {
             <li>Copiez l'URL longue depuis la barre d'adresse de la visionneuse.</li>
             <li>Collez-la dans le champ dédié.</li>
             <li>Ajustez le numéro de la vue si nécessaire (l'index sera automatiquement calculé).</li>
+        `;
+    } else if (config.mode === "savoie") {
+        savoieGroup.style.display = "block";
+        infoTitle.innerHTML = "Comment utiliser le générateur pour les AD de la Savoie ?";
+        instructions.innerHTML = `
+            <li>Dans la visionneuse de la Savoie, copiez l'URL de la barre d'adresse (ex: <code>.../v2/ark:/77293/6ae5acf21f8157119af4c4b33679182c</code>).</li>
+            <li>Collez-la ci-dessus.</li>
+            <li>Indiquez le numéro de la vue / page souhaitée : il est ajouté à l'adresse sous la forme <code>vue=&lt;n°&gt;</code> (un numéro hors bornes renvoie à la 1re page).</li>
         `;
     } else if (config.mode === "nantes") {
         nantesGroup.style.display = "block";
@@ -435,8 +455,31 @@ function genererPermalien() {
             ? `${config.baseUrl}#/_recherche-api/visionneuse-infos/${systemKey1}/${arkoFiche}/${systemKey2}/image/${idImage}/${indexVue}`
             : `${config.baseUrl}#/_recherche-api/visionneuse-infos/${systemKey1}/${arkoFiche}/${systemKey2}/${indexVue}`;
 
+    } else if (config.mode === "savoie") {
+        const savoieUrl = document.getElementById('savoieUrlInput').value.trim();
+        let pageNum = parseInt(document.getElementById('pageInput').value, 10);
+
+        if (!savoieUrl) return;
+
+        if (isNaN(pageNum) || pageNum < 1) {
+            pageNum = 1;
+            document.getElementById('pageInput').value = 1;
+        }
+
+        try {
+            // Remplace un éventuel vue= existant, sinon l'ajoute (« & » ou « ? » selon l'adresse)
+            const urlObj = new URL(savoieUrl);
+            urlObj.searchParams.set('vue', pageNum);
+            urlFinale = urlObj.toString();
+        } catch (e) {
+            // Si l'URL saisie est partielle
+            let cleanUrl = savoieUrl.replace(/&vue=\d+/g, '').replace(/\?vue=\d+/g, '');
+            const separator = cleanUrl.includes('?') ? '&' : '?';
+            urlFinale = `${cleanUrl}${separator}vue=${pageNum}`;
+        }
+
     } else if (config.mode === "nantes") {
-        const nantesUrl = document.getElementById('nantesUrlInput').value.trim();
+        const nantesUrl =document.getElementById('nantesUrlInput').value.trim();
         let pageNum = parseInt(document.getElementById('pageInput').value, 10);
 
         if (!nantesUrl) return;
@@ -514,21 +557,60 @@ function reinitialiser() {
     document.getElementById('infoInput').value = "";
     document.getElementById('urlInput').value = "";
     document.getElementById('nantesUrlInput').value = "";
+    document.getElementById('savoieUrlInput').value = "";
     document.getElementById('pageInput').value = 1;
     document.getElementById('errorMsg').innerText = "";
     document.getElementById('resultContainer').style.display = "none";
 }
 
-window.onload = function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const deptParam = urlParams.get('dept') || urlParams.get('archive');
-
-    if (deptParam && deptsConfig[deptParam]) {
-        document.getElementById('deptSelect').value = deptParam;
-    }
-
-    changerDepartement();
+// Noms alternatifs acceptés (en plus des valeurs de la liste : 09, 11, 38, am_nantes...)
+const alias = {
+    "savoie": "73",
+    "nantes": "am_nantes", "44": "am_nantes",
+    "saint_etienne": "am_saint_etienne", "st_etienne": "am_saint_etienne",
+    "saintetienne": "am_saint_etienne", "42": "am_saint_etienne"
 };
+
+// Met en minuscules, enlève les accents, remplace espaces et tirets par « _ »
+function normaliser(valeur) {
+    return valeur.trim().toLowerCase()
+        .normalize("NFD").replace(/[̀-ͯ]/g, "")
+        .replace(/[-\s]+/g, "_");
+}
+
+// Lit le département dans l'adresse. Supporte #dept=11, ?dept=11, #archive=11
+// et la valeur seule (#am_nantes, #savoie...).
+function departementDepuisAdresse() {
+    const brut = window.location.hash.substring(1) || window.location.search.substring(1);
+    if (!brut) return null;
+    let valeur;
+    if (brut.includes("=")) {
+        const params = new URLSearchParams(brut);
+        valeur = params.get('dept') || params.get('archive');
+    } else {
+        valeur = brut;
+    }
+    if (!valeur) return null;
+    const v = normaliser(decodeURIComponent(valeur));
+    if (deptsConfig[v]) return v;
+    if (alias[v]) return alias[v];
+    if (deptsConfig["am_" + v]) return "am_" + v;
+    return null;
+}
+
+function appliquerAdresse() {
+    const deptParam = departementDepuisAdresse();
+    if (deptParam) {
+        document.getElementById('deptSelect').value = deptParam;
+        reinitialiser();
+    }
+    changerDepartement();
+}
+
+window.onload = appliquerAdresse;
+
+// Page déjà ouverte dans l'onglet : un changement de # ne recharge pas la page
+window.addEventListener('hashchange', appliquerAdresse);
 </script>
 
 </body>
