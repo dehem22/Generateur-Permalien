@@ -74,16 +74,6 @@
   ol.etapes h3 { margin: 0 0 6px; font-size: 1.02rem; }
   ol.etapes p { margin: 4px 0; }
   ul { margin: 6px 0; padding-left: 22px; }
-  kbd {
-    background: var(--fond);
-    border: 1px solid var(--bord);
-    border-bottom-width: 2px;
-    border-radius: 4px;
-    padding: 1px 6px;
-    font-size: 0.9em;
-    font-family: inherit;
-    white-space: nowrap;
-  }
   code {
     background: var(--carte);
     border: 1px solid var(--bord);
@@ -109,43 +99,32 @@
   <p class="sous-titre">Procédure pour récupérer l'adresse de la 1<sup>re</sup> page d'un registre.</p>
 
   <div class="alerte">
-    <strong>Pourquoi cette procédure ?</strong><br>
-    Le bouton « Permalien » de la visionneuse est verrouillé (cadenas) et il n'est pas possible de se connecter.
-    Dès la 2<sup>e</sup> image, l'adresse devient <code>…/Web_RegistreChangePage/ILUMP&lt;n°&gt;</code> et ne change plus
-    jusqu'à la fin du registre. Il n'existe donc pas de lien direct vers une page quelconque :
-    on donne le lien vers la <strong>1<sup>re</sup> page</strong> du registre, puis, dès cette 1<sup>re</sup> page,
-    un bouton permet de saisir le numéro de la page désirée.
+    <strong>Important : à faire dès l'ouverture du registre.</strong><br>
+    L'adresse de la 1<sup>re</sup> page n'est disponible dans la barre d'adresse que
+    <strong>lors du tout premier accès</strong> au registre. Dès que l'on navigue dans le registre,
+    l'adresse devient <code>…/Web_RegistreChangePage/ILUMP&lt;n°&gt;</code> et ne change plus.
+    Même un retour à la 1<sup>re</sup> page conserve cette adresse, qui ne permet plus de retrouver
+    la 1<sup>re</sup> page. Si l'on a déjà navigué, il faut repartir de la liste des registres.
   </div>
 
   <ol class="etapes">
     <li>
       <h3>Afficher la liste des registres</h3>
-      <p>Lancez la recherche souhaitée sur le site des archives, jusqu'à l'affichage de la liste des registres correspondants.</p>
+      <p>Lancez la recherche souhaitée sur le site des archives, jusqu'à l'affichage de la liste des registres correspondant aux critères de recherche.</p>
     </li>
     <li>
-      <h3>Ouvrir les outils du navigateur</h3>
-      <p>Appuyez sur <kbd>F12</kbd>, puis ouvrez l'onglet <strong>Réseau</strong> (Network).</p>
-      <p>Dans les filtres, choisissez <strong>Document</strong>.</p>
+      <h3>Ouvrir le registre désiré</h3>
+      <p>Cliquez sur le registre souhaité dans cette liste.</p>
     </li>
     <li>
-      <h3>Copier l'adresse de la liste</h3>
-      <p>Sur la 1<sup>re</sup> ligne, on trouve le nom de la liste, de la forme <code>ILUMP&lt;n°&gt;</code>.</p>
-      <p>Faites un clic droit sur cette ligne, puis <strong>Copier</strong> puis <strong>Copier l'URL</strong>.</p>
+      <h3>Copier l'adresse sans rien faire d'autre</h3>
+      <p>Dès que le registre est affiché, et <strong>avant toute navigation</strong>, copiez l'adresse présente dans la barre d'adresse du navigateur :
+      c'est l'URL de la 1<sup>re</sup> page du registre.</p>
     </li>
     <li>
-      <h3>Ouvrir ce lien et choisir le registre</h3>
-      <p>Ouvrez le lien copié dans le navigateur.</p>
-      <p>Faites <kbd>Ctrl</kbd> + <kbd>Maj</kbd> + clic sur le registre souhaité.</p>
-    </li>
-    <li>
-      <h3>Récupérer l'adresse de la 1<sup>re</sup> page</h3>
-      <p>Le registre s'ouvre dans un <strong>nouvel onglet</strong>.</p>
-      <p>Copiez l'adresse affichée dans la barre d'adresse : c'est l'URL de la 1<sup>re</sup> page du registre.</p>
-    </li>
-    <li>
-      <h3>Aller à la page désirée</h3>
-      <p>Dès la 1<sup>re</sup> page, utilisez le <strong>bouton de choix du numéro de page</strong> de la visionneuse
-      et saisissez le numéro de la page souhaitée.</p>
+      <h3>Aller à la page désirée (si besoin)</h3>
+      <p>Une fois l'adresse copiée, vous pouvez naviguer librement. Utilisez le <strong>bouton de choix du numéro de page</strong>
+      de la visionneuse pour atteindre la page souhaitée.</p>
     </li>
   </ol>
 
@@ -157,8 +136,9 @@
   <h2>À retenir</h2>
   <ul>
     <li>Ce lien ouvre toujours la <strong>1<sup>re</sup> page</strong> du registre.</li>
-    <li>Pour atteindre une autre page, utilisez le bouton de choix du numéro de page, disponible dès la 1<sup>re</sup> page.</li>
-    <li>Dès la 2<sup>e</sup> image, l'adresse affichée change (<code>Web_RegistreChangePage</code>) et ne doit pas être copiée comme lien du registre.</li>
+    <li>L'adresse doit être copiée <strong>au premier accès</strong> au registre, avant toute navigation.</li>
+    <li>Après navigation, l'adresse affichée (<code>Web_RegistreChangePage</code>) ne doit pas être copiée comme lien du registre : revenez à la liste des registres et ouvrez de nouveau le registre.</li>
+    <li>Pour atteindre une autre page, utilisez le bouton de choix du numéro de page de la visionneuse.</li>
   </ul>
 
   <p class="discret">Pensez à indiquer, avec le lien, la cote du registre et le numéro de la page ou de la vue à atteindre.</p>
@@ -166,3 +146,4 @@
 </main>
 </body>
 </html>
+
